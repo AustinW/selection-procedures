@@ -14,7 +14,7 @@ class WagcCalculator implements ProcedureCalculatorContract
     public function calculateRanking(string $apparatus, string $division, Collection $results, array $config): Collection
     {
         $procedureYear = $config['year'] ?? now()->year;
-        
+
         // WAGC specific config
         $divisionConfig = $config['divisions'][$division] ?? [];
         $minAge = $divisionConfig['min_age'] ?? null;
@@ -23,8 +23,7 @@ class WagcCalculator implements ProcedureCalculatorContract
         $qualCount = $config['rules']['combined_score_qual_count'] ?? 0;
 
         // 1. Filter results by apparatus and division
-        $filteredResults = $results->filter(fn (ResultContract $result) =>
-            strtolower($result->getApparatus()) === strtolower($apparatus)
+        $filteredResults = $results->filter(fn (ResultContract $result) => strtolower($result->getApparatus()) === strtolower($apparatus)
             && $result->getDivision() === $division
         );
 
@@ -52,16 +51,17 @@ class WagcCalculator implements ProcedureCalculatorContract
                         return null; // Ineligible
                     }
                 } catch (\Throwable $e) {
-                     error_log("Error processing age eligibility for athlete ID " . ($athleteId ?? 'unknown') . ": " . $e->getMessage());
-                     return null; // Treat errors as ineligible
+                    error_log('Error processing age eligibility for athlete ID '.($athleteId ?? 'unknown').': '.$e->getMessage());
+
+                    return null; // Treat errors as ineligible
                 }
             }
 
             // Check for required level if specified in config
             if ($requiredLevel) {
                 // Check if *any* result for this athlete in this division matches the required level
-                $hasRequiredLevel = $athleteResults->contains(fn(ResultContract $r) => strtolower($r->getLevel()) === strtolower($requiredLevel));
-                if (!$hasRequiredLevel) {
+                $hasRequiredLevel = $athleteResults->contains(fn (ResultContract $r) => strtolower($r->getLevel()) === strtolower($requiredLevel));
+                if (! $hasRequiredLevel) {
                     return null; // Ineligible because level requirement not met
                 }
             }
@@ -76,11 +76,9 @@ class WagcCalculator implements ProcedureCalculatorContract
                 $preferentialThreshold = $thresholds['preferential'][$gender] ?? PHP_FLOAT_MAX;
                 $minimumThreshold = $thresholds['minimum'][$gender] ?? PHP_FLOAT_MAX;
 
-                $meetsPreferential = $athleteResults->contains(fn (ResultContract $r) =>
-                    float_compare($r->getQualificationScore(), '>=', $preferentialThreshold)
+                $meetsPreferential = $athleteResults->contains(fn (ResultContract $r) => float_compare($r->getQualificationScore(), '>=', $preferentialThreshold)
                 );
-                $meetsMinimum = $athleteResults->contains(fn (ResultContract $r) =>
-                    float_compare($r->getQualificationScore(), '>=', $minimumThreshold)
+                $meetsMinimum = $athleteResults->contains(fn (ResultContract $r) => float_compare($r->getQualificationScore(), '>=', $minimumThreshold)
                 );
                 $highestQualScore = $athleteResults->map->getQualificationScore()->max() ?? 0.0;
 
@@ -96,7 +94,8 @@ class WagcCalculator implements ProcedureCalculatorContract
                     ],
                 ];
             } catch (\Throwable $e) {
-                error_log("Error processing calculation for athlete ID " . ($athleteId ?? 'unknown') . ": " . $e->getMessage());
+                error_log('Error processing calculation for athlete ID '.($athleteId ?? 'unknown').': '.$e->getMessage());
+
                 return null; // Treat errors as ineligible
             }
         })->filter(fn ($data) => $data !== null); // Filter out nulls (ineligible or errors) AFTER mapping
@@ -108,7 +107,7 @@ class WagcCalculator implements ProcedureCalculatorContract
         })->values(); // Reset keys after sorting
 
         // 9. Assign ranks and create RankedAthlete DTOs
-        $finalRankedList = new Collection();
+        $finalRankedList = new Collection;
         $currentRank = 1;
         $processedCount = 0;
         $lastScore = -1.0;
@@ -129,7 +128,7 @@ class WagcCalculator implements ProcedureCalculatorContract
                     $needsManualReview = true;
                 }
             }
-             // Also check against the *previous* athlete to mark the second person in a tie
+            // Also check against the *previous* athlete to mark the second person in a tie
             if ($index > 0) {
                 $prevData = $rankedAthletesData[$index - 1];
                 if ($data['combinedScore'] === $prevData['combinedScore'] && $data['highestQualScore'] === $prevData['highestQualScore']) {
@@ -143,7 +142,7 @@ class WagcCalculator implements ProcedureCalculatorContract
                 rank: $currentRank,
                 meetsPreferentialThreshold: $data['meetsPreferentialThreshold'],
                 meetsMinimumThreshold: $data['meetsMinimumThreshold'],
-                tieBreakerInfo: sprintf("Highest Qual: %.3f", $data['highestQualScore']),
+                tieBreakerInfo: sprintf('Highest Qual: %.3f', $data['highestQualScore']),
                 needsManualReview: $needsManualReview,
                 contributingScores: $data['contributingScores'],
             ));
@@ -155,4 +154,4 @@ class WagcCalculator implements ProcedureCalculatorContract
         // 10. Return collection of RankedAthlete DTOs
         return $finalRankedList;
     }
-} 
+}

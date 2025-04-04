@@ -29,9 +29,9 @@ class MockAthlete implements AthleteContract
     {
         return $this->gender;
     }
-    
+
     public function getLevel(): string
     {
         return $this->level;
     }
-} 
+}

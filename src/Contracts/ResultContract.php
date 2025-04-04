@@ -42,4 +42,4 @@ interface ResultContract
      * Get the competition level for this result (e.g., 'senior_elite', 'junior', 'youth_elite').
      */
     public function getLevel(): string;
-} 
+}

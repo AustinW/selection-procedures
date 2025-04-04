@@ -23,8 +23,6 @@ interface AthleteContract
 
     /**
      * Get the athlete's competition level (e.g., 'youth_elite', 'level_10', 'level_9', etc.).
-     * 
-     * @return string
      */
     public function getLevel(): string;
-} 
+}

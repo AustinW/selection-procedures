@@ -1,7 +1,6 @@
 <?php
 
 use AustinW\SelectionProcedures\Calculators\EDPCalculator;
-use AustinW\SelectionProcedures\Contracts\ProcedureCalculatorContract;
 use AustinW\SelectionProcedures\Dto\RankedAthlete;
 use AustinW\SelectionProcedures\Tests\Mocks\MockAthlete;
 use AustinW\SelectionProcedures\Tests\Mocks\MockResult;
@@ -72,22 +71,22 @@ it('ranks trampoline athletes for EDP team correctly', function () {
         new MockResult($athlete1, 'winter_classic', $apparatus, $division, 82.0, null),      // Athlete 1, YE 14
         new MockResult($athlete2, 'elite_challenge', $apparatus, $division, 83.0, null),     // Athlete 2, YE 13
         new MockResult($athlete1, 'usa_gymnastics_championships', $apparatus, $division, 84.0, null),
-        
+
         // Youth Elite 11-12
         new MockResult($athlete3, 'winter_classic', $apparatus, $division, 81.0, null),      // Athlete 3, YE 12
         new MockResult($athlete4, 'elite_challenge', $apparatus, $division, 82.5, null),     // Athlete 4, YE 11
-        
+
         // Level 10 13-14
         new MockResult($athlete5, 'winter_classic', $apparatus, $division, 83.5, null),      // Athlete 5, L10 14
         new MockResult($athlete6, 'elite_challenge', $apparatus, $division, 84.5, null),     // Athlete 6, L10 13
-        
+
         // Level 10 11-12
         new MockResult($athlete7, 'winter_classic', $apparatus, $division, 82.0, null),      // Athlete 7, L10 12
         new MockResult($athlete8, 'elite_challenge', $apparatus, $division, 83.0, null),     // Athlete 8, L10 11
-        
+
         // Too young
         new MockResult($athlete9, 'winter_classic', $apparatus, $division, 90.0, null),      // Athlete 9, YE 10 (too young)
-        
+
         // Athletes below minimum score
         new MockResult($athlete1, 'elite_challenge', $apparatus, $division, 80.0, null),     // Below min score
     ]);
@@ -97,19 +96,19 @@ it('ranks trampoline athletes for EDP team correctly', function () {
 
     // Check that only eligible athletes are included (age 11-14)
     expect($rankings)->not->toHaveCount(0);
-    
+
     // Check that the too young athlete is excluded
     $tooYoungAthlete = $rankings->first(fn (RankedAthlete $ra) => $ra->athlete->getId() === 9);
     expect($tooYoungAthlete)->toBeNull();
-    
+
     // Verify that the top-scoring athlete is ranked first
     $topAthlete = $rankings->first();
     expect($topAthlete->rank)->toBe(1);
-    
+
     // Check that we've properly sorted athletes by score
     $isSortedByScore = true;
     $lastScore = PHP_FLOAT_MAX;
-    
+
     foreach ($rankings as $rankedAthlete) {
         if ($rankedAthlete->combinedScore > $lastScore) {
             $isSortedByScore = false;
@@ -117,9 +116,9 @@ it('ranks trampoline athletes for EDP team correctly', function () {
         }
         $lastScore = $rankedAthlete->combinedScore;
     }
-    
+
     expect($isSortedByScore)->toBeTrue();
-    
+
     // For a complete test, you would verify:
     // 1. Top 4 Youth Elite 13-14 are included
     // 2. Top 4 Youth Elite 11-12 are included
@@ -149,22 +148,22 @@ it('ranks tumbling athletes for EDP team correctly', function () {
         // Youth Elite 13-14
         new MockResult($athlete1, 'winter_classic', $apparatus, $division, 42.0, null),      // Athlete 1, YE 14
         new MockResult($athlete2, 'elite_challenge', $apparatus, $division, 43.0, null),     // Athlete 2, YE 13
-        
+
         // Youth Elite 11-12
         new MockResult($athlete3, 'winter_classic', $apparatus, $division, 41.0, null),      // Athlete 3, YE 12
         new MockResult($athlete4, 'elite_challenge', $apparatus, $division, 42.5, null),     // Athlete 4, YE 11
-        
+
         // Level 10 13-14
         new MockResult($athlete5, 'winter_classic', $apparatus, $division, 43.5, null),      // Athlete 5, L10 14
         new MockResult($athlete6, 'elite_challenge', $apparatus, $division, 44.5, null),     // Athlete 6, L10 13
-        
+
         // Level 10 11-12
         new MockResult($athlete7, 'winter_classic', $apparatus, $division, 42.0, null),      // Athlete 7, L10 12
         new MockResult($athlete8, 'elite_challenge', $apparatus, $division, 43.0, null),     // Athlete 8, L10 11
-        
+
         // Too young
         new MockResult($athlete9, 'winter_classic', $apparatus, $division, 45.0, null),      // Athlete 9, YE 10 (too young)
-        
+
         // Athletes below minimum score
         new MockResult($athlete1, 'elite_challenge', $apparatus, $division, 38.0, null),     // Below min score
     ]);
@@ -174,34 +173,32 @@ it('ranks tumbling athletes for EDP team correctly', function () {
 
     // Check that only eligible athletes are included (age 11-14)
     expect($rankings)->not->toHaveCount(0);
-    
+
     // Check that the too young athlete is excluded
     $tooYoungAthlete = $rankings->first(fn (RankedAthlete $ra) => $ra->athlete->getId() === 9);
     expect($tooYoungAthlete)->toBeNull();
-    
+
     // Verify that the top-scoring athlete is ranked first
     $topAthlete = $rankings->first();
     expect($topAthlete->rank)->toBe(1);
-    
+
     // In tumbling, max team size is 12 (vs 16 for trampoline)
     expect($rankings->count() <= 12)->toBeTrue();
-    
+
     // Test category-specific selection criteria
     // For tumbling, the selection steps are:
     // 1. Top 4 Youth Elite 13-14
     // 2. Top 4 Youth Elite 11-12
     // 3. Top 4 additional athletes (vs 8 for trampoline)
-    
+
     // Count athletes from each category
-    $youthElite13_14Count = $rankings->filter(fn (RankedAthlete $ra) => 
-        $ra->contributingScores['category'] === 'youth_elite_13_14')->count();
-    $youthElite11_12Count = $rankings->filter(fn (RankedAthlete $ra) => 
-        $ra->contributingScores['category'] === 'youth_elite_11_12')->count();
-        
+    $youthElite13_14Count = $rankings->filter(fn (RankedAthlete $ra) => $ra->contributingScores['category'] === 'youth_elite_13_14')->count();
+    $youthElite11_12Count = $rankings->filter(fn (RankedAthlete $ra) => $ra->contributingScores['category'] === 'youth_elite_11_12')->count();
+
     // Verify top performers are included
     expect($youthElite13_14Count >= min(2, count([$athlete1, $athlete2])))->toBeTrue();
     expect($youthElite11_12Count >= min(2, count([$athlete3, $athlete4])))->toBeTrue();
-    
+
     // Check minimum score requirement
     foreach ($rankings as $rankedAthlete) {
         expect($rankedAthlete->meetsMinimumThreshold)->toBeTrue();
@@ -212,7 +209,7 @@ it('ranks tumbling athletes for EDP team correctly', function () {
 it('ranks double-mini athletes for EDP team correctly', function () {
     $config = config('selection-procedures.procedures.2025_edp');
     $apparatus = 'double-mini';
-    
+
     // Test the female division to verify gender-specific minimum scores
     $division = 'female';
 
@@ -225,28 +222,28 @@ it('ranks double-mini athletes for EDP team correctly', function () {
     $athlete6 = new MockAthlete(6, '2012-01-01', 'female', 'level_10');    // 13 in 2025, Level 10
     $athlete7 = new MockAthlete(7, '2013-01-01', 'female', 'level_10');    // 12 in 2025, Level 10
     $athlete8 = new MockAthlete(8, '2014-01-01', 'female', 'level_10');    // 11 in 2025, Level 10
-    
+
     // Female-specific minimum score is 44.8 for double-mini
     $results = collect([
         // Youth Elite 13-14
         new MockResult($athlete1, 'winter_classic', $apparatus, $division, 46.0, null),      // Athlete 1, YE 14
         new MockResult($athlete2, 'elite_challenge', $apparatus, $division, 47.0, null),     // Athlete 2, YE 13
-        
+
         // Youth Elite 11-12
         new MockResult($athlete3, 'winter_classic', $apparatus, $division, 45.5, null),      // Athlete 3, YE 12
         new MockResult($athlete4, 'elite_challenge', $apparatus, $division, 46.5, null),     // Athlete 4, YE 11
-        
+
         // Level 10 13-14
         new MockResult($athlete5, 'winter_classic', $apparatus, $division, 47.5, null),      // Athlete 5, L10 14
         new MockResult($athlete6, 'elite_challenge', $apparatus, $division, 48.5, null),     // Athlete 6, L10 13
-        
+
         // Level 10 11-12
         new MockResult($athlete7, 'winter_classic', $apparatus, $division, 45.0, null),      // Athlete 7, L10 12
         new MockResult($athlete8, 'elite_challenge', $apparatus, $division, 44.9, null),     // Athlete 8, L10 11
-        
+
         // Borderline score (just above minimum)
         new MockResult($athlete7, 'winter_classic', $apparatus, $division, 44.8, null),
-        
+
         // Below minimum score
         new MockResult($athlete8, 'usa_gymnastics_championships', $apparatus, $division, 44.9, null), // Above min
     ]);
@@ -256,22 +253,22 @@ it('ranks double-mini athletes for EDP team correctly', function () {
 
     // Check that rankings are not empty
     expect($rankings)->not->toHaveCount(0);
-    
+
     // In double-mini, max team size is 12
     expect($rankings->count() <= 12)->toBeTrue();
-    
+
     // Test gender-specific minimum score
     foreach ($rankings as $rankedAthlete) {
         expect($rankedAthlete->meetsMinimumThreshold)->toBeTrue();
         expect($rankedAthlete->combinedScore >= 44.8)->toBeTrue();
     }
-    
+
     // Debug the athletes and scores in the rankings
     $debugInfo = $rankings->map(function (RankedAthlete $ra) {
         return [
             'id' => $ra->athlete->getId(),
             'score' => $ra->combinedScore,
-            'meets_threshold' => $ra->meetsMinimumThreshold
+            'meets_threshold' => $ra->meetsMinimumThreshold,
         ];
     });
 
@@ -280,9 +277,8 @@ it('ranks double-mini athletes for EDP team correctly', function () {
     expect($athlete7)->not->toBeNull();
 
     // Verify athlete with below-minimum score is not included with that score
-    $belowMinAthlete = $rankings->first(fn (RankedAthlete $ra) => 
-        $ra->athlete->getId() === 8);
+    $belowMinAthlete = $rankings->first(fn (RankedAthlete $ra) => $ra->athlete->getId() === 8);
     if ($belowMinAthlete) {
         expect($belowMinAthlete->combinedScore >= 44.8)->toBeTrue();
     }
-}); 
+});

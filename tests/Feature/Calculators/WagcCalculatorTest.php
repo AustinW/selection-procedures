@@ -59,12 +59,12 @@ it('correctly ranks athletes for wagc 13-14 boys tumbling', function () {
 
         // Irrelevant result (wrong division)
         createWagcResult($athlete1, 'event1', 45.0, $apparatus, '17-21'),
-         // Irrelevant result (wrong apparatus)
+        // Irrelevant result (wrong apparatus)
         createWagcResult($athlete1, 'event1', 55.0, 'trampoline', $division),
     ]);
 
     // --- Service Invocation ---
-    $rankingService = new RankingService();
+    $rankingService = new RankingService;
     $rankedList = $rankingService->rank($procedureKey, $apparatus, $division, $results);
 
     // --- Assertions ---
@@ -140,7 +140,7 @@ it('correctly ranks athletes for wagc 17-21 women double-mini', function () {
         createWagcResult($athleteD, 'event2', 50.0, $apparatus, $division, 'junior'),
     ]);
 
-    $rankingService = new RankingService();
+    $rankingService = new RankingService;
     $rankedList = $rankingService->rank($procedureKey, $apparatus, $division, $results);
 
     expect($rankedList)->toHaveCount(2); // Only A and B are eligible
@@ -161,4 +161,4 @@ it('correctly ranks athletes for wagc 17-21 women double-mini', function () {
         ->meetsPreferentialThreshold->toBeFalse()
         ->meetsMinimumThreshold->toBeTrue();
 
-}); 
+});

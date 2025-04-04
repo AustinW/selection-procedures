@@ -7,7 +7,6 @@ use AustinW\SelectionProcedures\RankingService;
 use AustinW\SelectionProcedures\Tests\Mocks\MockAthlete;
 use AustinW\SelectionProcedures\Tests\Mocks\MockResult;
 
-
 // Helper function to create results easily
 function createResult(AthleteContract $athlete, string $event, float $qual, ?float $final = null, string $apparatus = 'trampoline', string $division = 'senior_elite'): ResultContract
 {
@@ -69,12 +68,12 @@ it('correctly ranks athletes for world championships trampoline senior elite men
 
         // Irrelevant result (wrong division)
         createResult($athlete1, '2025_winter_classic', 90.0, 90.0, $apparatus, 'junior'),
-         // Irrelevant result (wrong apparatus)
+        // Irrelevant result (wrong apparatus)
         createResult($athlete1, '2025_winter_classic', 70.0, 70.0, 'tumbling', $division),
     ]);
 
     // --- Service Invocation ---
-    $rankingService = new RankingService();
+    $rankingService = new RankingService;
     $rankedList = $rankingService->rank($procedureKey, $apparatus, $division, $results);
 
     // --- Assertions ---
@@ -96,7 +95,7 @@ it('correctly ranks athletes for world championships trampoline senior elite men
     // Athlete 2 - Rank 2 (Tie-breaker: Higher Highest Qual)
     /** @var RankedAthlete $rank2 */
     $rank2 = $rankedList->firstWhere('athlete', $athlete2);
-     expect($rank2)->not->toBeNull()
+    expect($rank2)->not->toBeNull()
         ->rank->toBe(2)
         ->combinedScore->toBe(169.1)
         ->meetsPreferentialThreshold->toBeTrue()
@@ -147,7 +146,7 @@ it('handles ties requiring manual review for world championships', function () {
     ]);
 
     // Instantiate directly instead of using app()
-    $rankingService = new RankingService();
+    $rankingService = new RankingService;
     $rankedList = $rankingService->rank($procedureKey, $apparatus, $division, $results);
 
     expect($rankedList)->toHaveCount(2);
@@ -199,7 +198,7 @@ it('correctly ranks athletes for world championships trampoline senior elite wom
         createResult($athlete3, 'event2', 49.5, null),
     ]);
 
-    $rankingService = new RankingService();
+    $rankingService = new RankingService;
     $rankedList = $rankingService->rank($procedureKey, $apparatus, $division, $results);
 
     expect($rankedList)->toHaveCount(3);
@@ -243,7 +242,7 @@ it('ranks athlete with no final scores', function () {
         createResult($athlete1, 'event2', 57.6, null),
     ]);
 
-    $rankingService = new RankingService();
+    $rankingService = new RankingService;
     $rankedList = $rankingService->rank($procedureKey, $apparatus, $division, $results);
 
     expect($rankedList)->toHaveCount(1);
@@ -272,7 +271,7 @@ it('correctly identifies minimum threshold met when preferential is not', functi
         createResult($athlete1, 'event2', 53.0, 54.0), // Doesn't meet min
     ]);
 
-    $rankingService = new RankingService();
+    $rankingService = new RankingService;
     $rankedList = $rankingService->rank($procedureKey, $apparatus, $division, $results);
 
     expect($rankedList)->toHaveCount(1);
@@ -306,7 +305,7 @@ it('handles complex tie requiring manual review', function () {
         createResult($athleteC, 'event2', 57.1, null),
     ]);
 
-    $rankingService = new RankingService();
+    $rankingService = new RankingService;
     $rankedList = $rankingService->rank($procedureKey, $apparatus, $division, $results);
 
     expect($rankedList)->toHaveCount(3);
@@ -362,7 +361,7 @@ it('correctly ranks athletes for world championships tumbling senior elite men',
         createResult($athlete3, 'event2', 46.5, null, $apparatus, $division),
     ]);
 
-    $rankingService = new RankingService();
+    $rankingService = new RankingService;
     $rankedList = $rankingService->rank($procedureKey, $apparatus, $division, $results);
 
     expect($rankedList)->toHaveCount(3);
@@ -421,14 +420,14 @@ it('correctly ranks athletes for world championships double-mini senior elite wo
         createResult($athlete3, 'event1', 48.8, null, $apparatus, $division),
         createResult($athlete3, 'event2', 48.5, 49.8, $apparatus, $division),
 
-         // Athlete 4 (Meets Neither)
+        // Athlete 4 (Meets Neither)
         // Quals: 49.0, 48.0 | Finals: 49.1
         // Combined: (49.0 + 48.0) + 49.1 = 146.1
         createResult($athlete4, 'event1', 49.0, 49.1, $apparatus, $division),
         createResult($athlete4, 'event2', 48.0, null, $apparatus, $division),
     ]);
 
-    $rankingService = new RankingService();
+    $rankingService = new RankingService;
     $rankedList = $rankingService->rank($procedureKey, $apparatus, $division, $results);
 
     expect($rankedList)->toHaveCount(4);
@@ -460,4 +459,4 @@ it('correctly ranks athletes for world championships double-mini senior elite wo
         ->combinedScore->toBe(146.1)
         ->meetsPreferentialThreshold->toBeTrue() // Corrected: 146.1 >= 50.3
         ->meetsMinimumThreshold->toBeFalse(); // Highest score 49.1 < Min 49.3
-}); 
+});

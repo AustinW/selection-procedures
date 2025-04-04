@@ -165,7 +165,7 @@ return [
         |--------------------------------------------------------------------------
         | 2025-2026 Elite Development Program (EDP)
         |--------------------------------------------------------------------------
-        | Selection based on qualification scores with minimum thresholds and 
+        | Selection based on qualification scores with minimum thresholds and
         | prioritized selection criteria across specific age/level divisions.
         */
         '2025_edp' => [
@@ -253,7 +253,7 @@ return [
         |--------------------------------------------------------------------------
         | 2025 Junior Pan American Games
         |--------------------------------------------------------------------------
-        | Selection is based on a Combined Score calculated as the sum of the two highest 
+        | Selection is based on a Combined Score calculated as the sum of the two highest
         | Qualification Scores plus the highest Finals score from the three Evaluative Events.
         | Team consists of 2 males and 2 females (plus 1 non-traveling alternate per gender).
         */
@@ -291,4 +291,4 @@ return [
         // ... Add other procedures here (e.g., Pan American Games, Olympic Games) ...
 
     ],
-]; 
+];

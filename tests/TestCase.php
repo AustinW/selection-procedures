@@ -2,9 +2,9 @@
 
 namespace AustinW\SelectionProcedures\Tests;
 
+use AustinW\SelectionProcedures\SelectionProceduresServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use AustinW\SelectionProcedures\SelectionProceduresServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -16,7 +16,7 @@ class TestCase extends Orchestra
     protected function getBasePath()
     {
         // Adjust this path if your workbench directory is located elsewhere
-        return __DIR__ . '/../workbench';
+        return __DIR__.'/../workbench';
     }
 
     protected function setUp(): void
@@ -48,8 +48,7 @@ class TestCase extends Orchestra
     /**
      * Load package config.
      *
-     * @param \Illuminate\Foundation\Application $app
-     *
+     * @param  \Illuminate\Foundation\Application  $app
      * @return void
      */
     protected function resolveApplicationConfiguration($app)
@@ -59,4 +58,4 @@ class TestCase extends Orchestra
         // Merges the package configuration
         $app['config']->set('selection-procedures', require __DIR__.'/../config/selection-procedures.php');
     }
-} 
+}

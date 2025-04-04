@@ -16,4 +16,4 @@ class RankedAthlete
         public readonly bool $needsManualReview = false, // Flag for unresolved ties
         public readonly array $contributingScores = [], // Optional: Store the scores that made up the combined score
     ) {}
-} 
+}

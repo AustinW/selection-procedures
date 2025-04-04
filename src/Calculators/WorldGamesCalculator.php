@@ -16,11 +16,7 @@ class WorldGamesCalculator implements ProcedureCalculatorContract
      * Selection is based on the sum of the highest two scores (Qual or Final)
      * across the specified selection events. No thresholds apply.
      *
-     * @param string $apparatus
-     * @param string $division
-     * @param Collection<int, ResultContract> $results
-     * @param array $config
-     *
+     * @param  Collection<int, ResultContract>  $results
      * @return Collection<int, RankedAthlete>
      */
     public function calculateRanking(string $apparatus, string $division, Collection $results, array $config): Collection
@@ -31,8 +27,7 @@ class WorldGamesCalculator implements ProcedureCalculatorContract
         $combinedScoreCount = $config['rules']['combined_score_count'] ?? 2; // How many top scores to sum
 
         // 1. Filter results by apparatus and division
-        $filteredResults = $results->filter(fn (ResultContract $result) =>
-            strtolower($result->getApparatus()) === strtolower($apparatus)
+        $filteredResults = $results->filter(fn (ResultContract $result) => strtolower($result->getApparatus()) === strtolower($apparatus)
             && $result->getDivision() === $division
         );
 
@@ -53,7 +48,8 @@ class WorldGamesCalculator implements ProcedureCalculatorContract
                         return null; // Not eligible due to age
                     }
                 } catch (\Throwable $e) {
-                    error_log("Error processing age eligibility for athlete ID " . ($athleteId ?? 'unknown') . ": " . $e->getMessage());
+                    error_log('Error processing age eligibility for athlete ID '.($athleteId ?? 'unknown').': '.$e->getMessage());
+
                     return null; // Treat errors as ineligible
                 }
             }
@@ -66,7 +62,7 @@ class WorldGamesCalculator implements ProcedureCalculatorContract
             // 4. Calculate Combined Score (Highest N scores overall)
             $allScores = $athleteResults->flatMap(fn (ResultContract $r) => [
                 $r->getQualificationScore(),
-                $r->getFinalScore()
+                $r->getFinalScore(),
             ])->filter(fn ($score) => $score !== null && $score > 0)->sortDesc(); // Combine, filter nulls/zeros, sort
 
             $topScores = $allScores->take($combinedScoreCount);
@@ -74,11 +70,11 @@ class WorldGamesCalculator implements ProcedureCalculatorContract
             $contributingScores = $topScores->values()->all();
 
             // Check if enough scores were available
-             if ($topScores->count() < $combinedScoreCount) {
-                 // Optionally handle athletes without enough scores, e.g., rank them lower or make ineligible
-                 // For now, they will rank based on the sum of available scores.
-                 // You might want to add a flag or specific handling here based on rules.
-             }
+            if ($topScores->count() < $combinedScoreCount) {
+                // Optionally handle athletes without enough scores, e.g., rank them lower or make ineligible
+                // For now, they will rank based on the sum of available scores.
+                // You might want to add a flag or specific handling here based on rules.
+            }
 
             return [
                 'athlete' => $athlete,
@@ -91,7 +87,7 @@ class WorldGamesCalculator implements ProcedureCalculatorContract
         $rankedAthletesData = $athleteCalculations->sortByDesc('combinedScore')->values(); // Reset keys
 
         // 6. Assign ranks and create RankedAthlete DTOs
-        $finalRankedList = new Collection();
+        $finalRankedList = new Collection;
         $currentRank = 1;
         $processedCount = 0;
         $lastScore = -1.0;
@@ -113,7 +109,7 @@ class WorldGamesCalculator implements ProcedureCalculatorContract
             }
             if ($index > 0) {
                 $prevData = $rankedAthletesData[$index - 1];
-                 if ($this->floatCompare($data['combinedScore'], $prevData['combinedScore'])) {
+                if ($this->floatCompare($data['combinedScore'], $prevData['combinedScore'])) {
                     $needsManualReview = true;
                 }
             }
@@ -135,17 +131,17 @@ class WorldGamesCalculator implements ProcedureCalculatorContract
         // 7. Return collection of RankedAthlete DTOs
         return $finalRankedList;
     }
-    
+
     /**
      * Compare two floating point numbers with an epsilon to account for floating point precision issues
      *
-     * @param float $a First number to compare
-     * @param float $b Second number to compare
-     * @param float $epsilon Precision (defaults to a small value that works for gymnastics scores)
+     * @param  float  $a  First number to compare
+     * @param  float  $b  Second number to compare
+     * @param  float  $epsilon  Precision (defaults to a small value that works for gymnastics scores)
      * @return bool Whether the two numbers are equal within epsilon precision
      */
     private function floatCompare(float $a, float $b, float $epsilon = 0.00001): bool
     {
         return abs($a - $b) < $epsilon;
     }
-} 
+}

@@ -4,6 +4,7 @@ namespace AustinW\SelectionProcedures;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+
 // use AustinW\SelectionProcedures\Commands\SelectionProceduresCommand;
 
 class SelectionProceduresServiceProvider extends PackageServiceProvider
@@ -20,6 +21,6 @@ class SelectionProceduresServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews()
             ->hasMigration('create_selection-procedures_table');
-            // ->hasCommand(SelectionProceduresCommand::class);
+        // ->hasCommand(SelectionProceduresCommand::class);
     }
-} 
+}

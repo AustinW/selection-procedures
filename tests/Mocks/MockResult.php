@@ -51,4 +51,4 @@ class MockResult implements ResultContract
     {
         return $this->level;
     }
-} 
+}
