@@ -13,6 +13,13 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
 {
     /**
      * Calculate the ranking for the World Championships procedure.
+     *
+     * @param string $apparatus
+     * @param string $division
+     * @param Collection $results
+     * @param array $config
+     *
+     * @return Collection
      */
     public function calculateRanking(string $apparatus, string $division, Collection $results, array $config): Collection
     {
@@ -23,9 +30,10 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
         $finalCount = $config['rules']['combined_score_final_count'] ?? 0;
 
         // 1. Filter results by apparatus and division
-        $filteredResults = $results->filter(fn (ResultContract $result) => strtolower($result->getApparatus()) === strtolower($apparatus)
-            && $result->getDivision() === $division
-        );
+        $filteredResults = $results->filter(function (ResultContract $result) use ($division, $apparatus) {
+            return strtolower($result->getApparatus()) === strtolower($apparatus)
+                && strtoupper($result->getDivision()) === strtoupper($division);
+        });
 
         // 2. Group results by athlete ID
         $resultsByAthlete = $filteredResults->groupBy(fn (ResultContract $result) => $result->getAthlete()->getId());
@@ -46,16 +54,16 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
                         return null; // Not eligible due to age
                     }
                 } catch (\Throwable $e) {
-                    error_log('Error processing age eligibility for athlete ID '.($athleteId ?? 'unknown').': '.$e->getMessage());
-
+                    error_log("Error processing age eligibility for athlete ID " . ($athleteId ?? 'unknown') . ": " . $e->getMessage());
                     return null; // Treat errors as ineligible
                 }
             }
 
             // Minimum events attended check
-            if ($athleteResults->unique(fn (ResultContract $r) => $r->getEventIdentifier())->count() < $minEvents) {
-                return null; // Not eligible due to insufficient events
-            }
+            // This is ignored for now as we want to include all athletes who have competed
+            // if ($athleteResults->unique(fn (ResultContract $r) => $r->getEventIdentifier())->count() < $minEvents) {
+            //     return null; // Not eligible due to insufficient events
+            // }
 
             // 4. Calculate Combined Score
             $topQualScores = $athleteResults->map->getQualificationScore()->sortDesc()->take($qualCount);
@@ -71,7 +79,8 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
             // 6. Determine if athlete meets thresholds
             $meetsPreferential = float_compare($combinedScore, '>=', $preferentialThreshold);
             // Check if *any* score meets the minimum threshold
-            $meetsMinimum = $athleteResults->contains(fn (ResultContract $r) => float_compare($r->getQualificationScore(), '>=', $minimumThreshold)
+            $meetsMinimum = $athleteResults->contains(fn (ResultContract $r) =>
+                float_compare($r->getQualificationScore(), '>=', $minimumThreshold)
                 || ($r->getFinalScore() !== null && float_compare($r->getFinalScore(), '>=', $minimumThreshold))
             );
 
@@ -98,7 +107,7 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
         })->values(); // Reset keys after sorting
 
         // 9. Assign ranks and create RankedAthlete DTOs
-        $finalRankedList = new Collection;
+        $finalRankedList = new Collection();
         $currentRank = 1; // Start rank at 1
         $processedCount = 0;
         $lastScore = -1.0;
@@ -119,7 +128,7 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
                     $needsManualReview = true;
                 }
             }
-            // Also check against the *previous* athlete to mark the second person in a tie
+             // Also check against the *previous* athlete to mark the second person in a tie
             if ($index > 0) {
                 $prevData = $rankedAthletesData[$index - 1];
                 if ($data['combinedScore'] === $prevData['combinedScore'] && $data['highestQualScore'] === $prevData['highestQualScore']) {
@@ -133,7 +142,7 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
                 rank: $currentRank,
                 meetsPreferentialThreshold: $data['meetsPreferentialThreshold'],
                 meetsMinimumThreshold: $data['meetsMinimumThreshold'],
-                tieBreakerInfo: sprintf('Highest Qual: %.3f', $data['highestQualScore']),
+                tieBreakerInfo: sprintf("Highest Qual: %.3f", $data['highestQualScore']),
                 needsManualReview: $needsManualReview,
                 contributingScores: $data['contributingScores'],
             ));
