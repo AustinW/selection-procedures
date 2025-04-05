@@ -13,13 +13,6 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
 {
     /**
      * Calculate the ranking for the World Championships procedure.
-     *
-     * @param string $apparatus
-     * @param string $division
-     * @param Collection $results
-     * @param array $config
-     *
-     * @return Collection
      */
     public function calculateRanking(string $apparatus, string $division, Collection $results, array $config): Collection
     {
@@ -38,7 +31,7 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
         // 2. Group results by athlete ID
         $resultsByAthlete = $filteredResults->groupBy(fn (ResultContract $result) => $result->getAthlete()->getId());
 
-        $athleteCalculations = $resultsByAthlete->map(function (Collection $athleteResults, $athleteId) use ($minEvents, $minAge, $procedureYear, $qualCount, $finalCount, $config, $apparatus, $division) {
+        $athleteCalculations = $resultsByAthlete->map(function (Collection $athleteResults, $athleteId) use ($minAge, $procedureYear, $qualCount, $finalCount, $config, $apparatus, $division) {
             /** @var AthleteContract $athlete */
             $athlete = $athleteResults->first()->getAthlete();
             $gender = strtolower($athlete->getGender());
@@ -54,7 +47,8 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
                         return null; // Not eligible due to age
                     }
                 } catch (\Throwable $e) {
-                    error_log("Error processing age eligibility for athlete ID " . ($athleteId ?? 'unknown') . ": " . $e->getMessage());
+                    error_log('Error processing age eligibility for athlete ID '.($athleteId ?? 'unknown').': '.$e->getMessage());
+
                     return null; // Treat errors as ineligible
                 }
             }
@@ -79,8 +73,7 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
             // 6. Determine if athlete meets thresholds
             $meetsPreferential = float_compare($combinedScore, '>=', $preferentialThreshold);
             // Check if *any* score meets the minimum threshold
-            $meetsMinimum = $athleteResults->contains(fn (ResultContract $r) =>
-                float_compare($r->getQualificationScore(), '>=', $minimumThreshold)
+            $meetsMinimum = $athleteResults->contains(fn (ResultContract $r) => float_compare($r->getQualificationScore(), '>=', $minimumThreshold)
                 || ($r->getFinalScore() !== null && float_compare($r->getFinalScore(), '>=', $minimumThreshold))
             );
 
@@ -107,7 +100,7 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
         })->values(); // Reset keys after sorting
 
         // 9. Assign ranks and create RankedAthlete DTOs
-        $finalRankedList = new Collection();
+        $finalRankedList = new Collection;
         $currentRank = 1; // Start rank at 1
         $processedCount = 0;
         $lastScore = -1.0;
@@ -128,7 +121,7 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
                     $needsManualReview = true;
                 }
             }
-             // Also check against the *previous* athlete to mark the second person in a tie
+            // Also check against the *previous* athlete to mark the second person in a tie
             if ($index > 0) {
                 $prevData = $rankedAthletesData[$index - 1];
                 if ($data['combinedScore'] === $prevData['combinedScore'] && $data['highestQualScore'] === $prevData['highestQualScore']) {
@@ -142,7 +135,7 @@ class WorldChampionshipsCalculator implements ProcedureCalculatorContract
                 rank: $currentRank,
                 meetsPreferentialThreshold: $data['meetsPreferentialThreshold'],
                 meetsMinimumThreshold: $data['meetsMinimumThreshold'],
-                tieBreakerInfo: sprintf("Highest Qual: %.3f", $data['highestQualScore']),
+                tieBreakerInfo: sprintf('Highest Qual: %.3f', $data['highestQualScore']),
                 needsManualReview: $needsManualReview,
                 contributingScores: $data['contributingScores'],
             ));
